@@ -1,35 +1,16 @@
-import chalk from 'chalk';
-import {
-  getHTML,
-  getTwitterFollowers,
-  getInstagramFollowers,
-} from './lib/scraper';
+import express from 'express';
+import { getTwitterCount, getInstagramCount } from './lib/scraper';
+import './lib/cron';
 
-console.clear();
-async function go() {
-  // Get Instagram And Twitter HTML
-  const insPromise = await getHTML('htpps://www.instagram.com/burakzeytinci');
-  const twitPromise = await getHTML('https://twitter.com/ABurakZeytinci');
-  const yPromise = await getHTML(
-    'https://www.youtube.com/channel/UCpKAlC-CipkkBYyBY9k5PiA'
-  );
-  const [instagramHTML, twitterHTML] = await Promise.all([
-    insPromise,
-    twitPromise,
-    yPromise,
+const app = express();
+app.get('/scrape', async (req, res) => {
+  const [iCount, tCount] = await Promise.all([
+    getInstagramCount(),
+    getTwitterCount(),
   ]);
-  // get Instagram Followers
-  const insCount = await getInstagramFollowers(instagramHTML);
-  console.log(
-    `Burak Zeytinci you have ${chalk.red.inverse.bold(
-      insCount
-    )} followers on Instagram and`
-  );
 
-  // get Twitter Followers
-
-  const twCount = await getTwitterFollowers(twitterHTML);
-  console.log(`${chalk.green.inverse.bold(twCount)} followers on Twitter`);
-  // get Youtube Followers
-}
-go();
+  res.json({ iCount, tCount });
+});
+app.listen(3333, () => {
+  console.log(`App is running`);
+});
